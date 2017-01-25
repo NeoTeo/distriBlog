@@ -25,21 +25,25 @@ def parse_arguments():
 
     return args
 
-def write_post(post_text, out_filename, root_post_hash, post_title):
+def write_post(post_data, root_post_hash, out_filename):
     # open a file to write to
     outfile = open(out_filename, 'x')
 
     outfile.write('<html>')
     outfile.write('<body>')
+
+    post_title = post_data.get('post_title', None)
     if post_title is not None:
         outfile.write('<h1>' + post_title + '</h1>')
 
-    outfile.write(post_text)
+    post_text = post_data.get('post_text', None)
+    if post_text is not None:
+        outfile.write(post_text)
 
     outfile.write('<br>')
-    outfile.write('<a href=\"https://ipfs.io/ipfs/' + root_post_hash.decode() + '\">[Previous post]</a>')
+    outfile.write('<a href=\"https://ipfs.io/ipfs/' + root_post_hash + '\">[Previous post]</a>')
     outfile.write('</body>')
-    outfile.write('<data-prev-post-hash=\"' + root_post_hash.decode() + '\"/>')
+    outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
     outfile.write('</html>')
 
     outfile.close()
@@ -72,7 +76,7 @@ def get_root_post_hash(root_ipns_hash):
     for line in p.stdout.readlines():
         prev_post_hash = ntpath.basename(line.strip())
 
-    return prev_post_hash
+    return prev_post_hash.decode()
 
 def load_defaults(defaults):
     print("defaults in: ", defaults)
@@ -91,6 +95,22 @@ def load_defaults(defaults):
             if key is not None and value is not None:
                 defaults[key] = value
 
+def extract_post_data(args):
+
+    post_data = {}
+
+    text_to_read = args.text_file
+
+    # Post text is either from a file or stdin
+    if text_to_read is not None:
+        post_text = text_to_read.read()
+    else:
+        sys.exit('Error! Post text is missing.')
+
+    post_data['post_text'] = post_text
+
+    return post_data
+
 
 def main():
     defaults = {}
@@ -103,13 +123,6 @@ def main():
     # if requested via args, store the args as defaults
     #store_defaults(defaults, args)
     
-    text_to_read = args.text_file
-
-    # Post text is either from a file or stdin
-    if text_to_read is not None:
-        post_text = text_to_read.read()
-    else:
-        sys.exit('Error! Post text is missing.')
 
     root_post_hash = get_root_post_hash(defaults['root_hash'])
 
@@ -118,8 +131,11 @@ def main():
     else:
         out_filename = 'post.html'
 
-    write_post(post_text, out_filename, root_post_hash, args.title)
+    post_data = extract_post_data(args)
 
+    write_post(post_data, root_post_hash, out_filename)
+
+#def write_post(post_text, out_filename, root_post_hash, post_title):
     post_hash = add_to_IPFS(out_filename)
 
     publish(post_hash)
