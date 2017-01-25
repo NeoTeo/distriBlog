@@ -99,6 +99,10 @@ def extract_post_data(args):
 
     post_data = {}
 
+    post_title = args.title
+    if post_title is not None:
+        post_data['post_title'] = post_title
+
     text_to_read = args.text_file
 
     # Post text is either from a file or stdin
