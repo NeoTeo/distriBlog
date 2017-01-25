@@ -33,8 +33,7 @@ def write_post(post_text, out_filename, root_post_hash, post_title):
     outfile.write('<body>')
     if post_title is not None:
         outfile.write('<h1>' + post_title + '</h1>')
-    #if file_to_read is not None:
-        #post_text = file_to_read.read()
+
     outfile.write(post_text)
 
     outfile.write('<br>')
@@ -54,9 +53,9 @@ def add_to_IPFS(out_filename):
     for line in p.stdout.readlines():
         matches = regex.search(line)
         post_hash = matches.group(1)
-        print("adding resulted in", post_hash)
+        print("adding resulted in", post_hash.decode())
 
-    return post_hash
+    return post_hash.decode()
 
 def publish(post_hash):
     # Publish the post as the IPNS 
@@ -104,11 +103,11 @@ def main():
     # if requested via args, store the args as defaults
     #store_defaults(defaults, args)
     
-    file_to_read = args.text_file
+    text_to_read = args.text_file
 
-    # Here we need to ensure the text is either from a file or input directly as a string arg.
-    if file_to_read is not None:
-        post_text = file_to_read.read()
+    # Post text is either from a file or stdin
+    if text_to_read is not None:
+        post_text = text_to_read.read()
     else:
         sys.exit('Error! Post text is missing.')
 
