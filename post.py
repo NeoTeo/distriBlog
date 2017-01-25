@@ -12,9 +12,9 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--text_file', nargs='?', type=argparse.FileType('r'), help='Name of text file.', default=sys.stdin)
     parser.add_argument('--root_hash', help='The IPNS root hash.')
-    parser.add_argument('--image_file', nargs='?', type=argparse.FileType('r'), help='Name of image file.', default=argparse.SUPPRESS)
-    parser.add_argument('--video_file', nargs='?', type=argparse.FileType('r'), help='Name of video file.', default=argparse.SUPPRESS)
-    parser.add_argument('--audio_file', nargs='?', type=argparse.FileType('r'), help='Name of audio file.', default=argparse.SUPPRESS)
+    parser.add_argument('--image_files', nargs='*', help='Names of image files.')
+    parser.add_argument('--video_files', nargs='*', type=argparse.FileType('r'), help='Name of video file.')
+    parser.add_argument('--audio_files', nargs='*', type=argparse.FileType('r'), help='Name of audio file.')
     parser.add_argument('--title', help='The title of the post.')
     parser.add_argument('--author', help='The author of the post.')
     parser.add_argument('--date', help='The date of the post. Defaults to current date.')
@@ -42,6 +42,11 @@ def write_post(post_data, root_post_hash, out_filename):
 
     outfile.write('<br>')
     outfile.write('<a href=\"https://ipfs.io/ipfs/' + root_post_hash + '\">[Previous post]</a>')
+
+    image_hashes = post_data.get('image_hashes', None)
+    for hash in image_hashes:
+        outfile.write('<img src=\"https://ipfs.io/ipfs/' + hash + '\"><br>')
+
     outfile.write('</body>')
     outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
     outfile.write('</html>')
@@ -49,14 +54,16 @@ def write_post(post_data, root_post_hash, out_filename):
     outfile.close()
 
 def add_to_IPFS(filename):
-    # Add the new post to the IPFS network
+
+    # Early out if file doesn't exist
+    if os.path.exists(filename) is not True:
+        return
+
+    # Add the file to the IPFS network
     p = Popen(['ipfs', 'add', '-q', filename], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
     # Compile regular expression to extract hash
-    #regex = re.compile(b'^added (Qm[\w]{44})')
     for line in p.stdout.readlines():
-        #matches = regex.search(line)
-        #post_hash = matches.group(1)
         post_hash = line.strip().decode()
         print("adding resulted in", post_hash)
 
@@ -68,7 +75,6 @@ def publish(post_hash):
         p = Popen(['ipfs', 'name', 'publish', post_hash], stdin=PIPE, stdout=PIPE, stderr=PIPE)
         print("Published ",post_hash," to ipns ")
         lines = p.stdout.readlines()
-        print(lines)
              
         for line in p.stdout.readlines():
             print("output is ",line)
@@ -117,8 +123,24 @@ def extract_post_data(args):
 
     post_data['post_text'] = post_text
 
+
+    # get image files as hashes
+    image_hashes = get_image_hashes(args.image_files)
+
+    if len(image_hashes) is not 0:
+        post_data['image_hashes'] = image_hashes
+
     return post_data
 
+def get_image_hashes(images):
+    image_hashes = []
+    for image in images:
+        print("image found", image)
+        image_hash = add_to_IPFS(image)
+        if image_hash is not None:
+            image_hashes.append(image_hash)
+
+    return image_hashes
 
 def main():
     defaults = {}
@@ -140,6 +162,8 @@ def main():
         out_filename = 'post.html'
 
     post_data = extract_post_data(args)
+
+    print(post_data)
 
     write_post(post_data, root_post_hash, out_filename)
 
