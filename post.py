@@ -5,11 +5,13 @@ import ntpath
 # For calling shell scripts
 from subprocess import call, Popen, PIPE
 
-import re # regular expressions
+import re                   # regular expressions
+import os.path              # for checking files exist
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--text', nargs='?', type=argparse.FileType('r'), help='A text file.', default=sys.stdin)
+    parser.add_argument('--text_file', nargs='?', type=argparse.FileType('r'), help='Name of file containing post text.', default=sys.stdin)
+    parser.add_argument('--root_hash', help='The IPNS root hash.')
     parser.add_argument('--image', help='An image file.')
     parser.add_argument('--video', help='An video file.')
     parser.add_argument('--audio', help='An audio file.')
@@ -73,23 +75,42 @@ def get_root_post_hash(root_ipns_hash):
 
     return prev_post_hash
 
+def load_defaults(defaults):
+    print("defaults in: ", defaults)
+    config_file = 'defaults.cfg'
+    if os.path.exists(config_file) is not True:
+        return
+
+    with open(config_file) as file:
+        # use regex to split into a key and a value
+        regex = re.compile('(\w+)\s*=\s*(\w+)')
+        for line in file.readlines():
+            matches = regex.search(line)
+            key = matches.group(1)
+            value = matches.group(2)
+            print("adding key", key, " and value ", value)
+            if key is not None and value is not None:
+                defaults[key] = value
+
 
 def main():
     defaults = {}
-    # for now we use magic numbers but will read from a config file 
-    defaults['root_hash'] = 'QmRzsihDMWML1dNPa51qwD2dacvZPfTrqsQt4pi1DWGJFP'
 
     # Python is pass by reference for mutable objects.
-    #load_defaults(defaults)
+    load_defaults(defaults)
+
     args = parse_arguments()
+
+    # if requested via args, store the args as defaults
     #store_defaults(defaults, args)
-    #print(args)
-    file_to_read = args.text
-    #print(file_to_read.name)
-    post_text = file_to_read.read()
+    
+    file_to_read = args.text_file
 
     # Here we need to ensure the text is either from a file or input directly as a string arg.
-    #if file_to_read is not None:
+    if file_to_read is not None:
+        post_text = file_to_read.read()
+    else:
+        sys.exit('Error! Post text is missing.')
 
     root_post_hash = get_root_post_hash(defaults['root_hash'])
 
