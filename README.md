@@ -22,3 +22,4 @@ The config file format is, one per line:
 * If no outfile is given, output to a temp file that is deleted locally after being added to IPFS.
 * Implement default date and time to be the time of posting.
 * Implement video and audio files.
+* Design post layout.
