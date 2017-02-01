@@ -13,8 +13,8 @@ def parse_arguments():
     parser.add_argument('--text_file', nargs='?', type=argparse.FileType('r'), help='Name of text file.', default=sys.stdin)
     parser.add_argument('--root_hash', help='The IPNS root hash.')
     parser.add_argument('--image_files', nargs='*', help='Names of image files.')
-    parser.add_argument('--video_files', nargs='*', type=argparse.FileType('r'), help='Name of video file.')
-    parser.add_argument('--audio_files', nargs='*', type=argparse.FileType('r'), help='Name of audio file.')
+    parser.add_argument('--video_files', nargs='*', help='Name of video file.')
+    parser.add_argument('--audio_files', nargs='*', help='Name of audio file.')
     parser.add_argument('--title', help='The title of the post.')
     parser.add_argument('--author', help='The author of the post.')
     parser.add_argument('--date', help='The date of the post. Defaults to current date.')
@@ -40,15 +40,43 @@ def write_post(post_data, root_post_hash, out_filename):
     if post_text is not None:
         outfile.write(post_text)
 
+
+    image_hashes = post_data.get('image_hashes', None)
+    if image_hashes is not None:
+        outfile.write('<p>')
+        for hash in image_hashes:
+            outfile.write('<img src=\"https://ipfs.io/ipfs/' + hash + '\">')
+            outfile.write('<br>')
+        outfile.write('</p>')
+
+    audio_hashes = post_data.get('audio_hashes', None)
+    if audio_hashes is not None:
+        outfile.write('<p>')
+        for hash in audio_hashes:
+            outfile.write('<audio controls>')
+            outfile.write('<source src=\"https://ipfs.io/ipfs/' + hash + '\">')
+            outfile.write('<br>')
+            outfile.write('</audio>')
+        outfile.write('<p>')
+
+    video_hashes = post_data.get('video_hashes', None)
+    if video_hashes is not None:
+        outfile.write('<p>')
+        for hash in video_hashes:
+            outfile.write('<video width=\"800\" height=\"600\" controls>')
+            outfile.write('<source src=\"https://ipfs.io/ipfs/' + hash + '\">')
+            outfile.write('<br>')
+            outfile.write('</video>')
+        outfile.write('<p>')
+
+    outfile.write('<p>')
+    outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
+    outfile.write('<p>')
+
     outfile.write('<br>')
     outfile.write('<a href=\"https://ipfs.io/ipfs/' + root_post_hash + '\">[Previous post]</a>')
 
-    image_hashes = post_data.get('image_hashes', None)
-    for hash in image_hashes:
-        outfile.write('<img src=\"https://ipfs.io/ipfs/' + hash + '\"><br>')
-
     outfile.write('</body>')
-    outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
     outfile.write('</html>')
 
     outfile.close()
@@ -125,22 +153,37 @@ def extract_post_data(args):
 
 
     # get image files as hashes
-    image_hashes = get_image_hashes(args.image_files)
+    if args.image_files is not None:
+        image_hashes = get_file_hashes(args.image_files)
 
-    if len(image_hashes) is not 0:
-        post_data['image_hashes'] = image_hashes
+        if len(image_hashes) is not 0:
+            post_data['image_hashes'] = image_hashes
+
+    # get sound files as hashes
+    if args.audio_files is not None:
+        audio_hashes = get_file_hashes(args.audio_files)
+
+        if len(audio_hashes) is not 0:
+            post_data['audio_hashes'] = audio_hashes
+
+    # get video files as hashes
+    if args.video_files is not None:
+        video_hashes = get_file_hashes(args.video_files)
+
+        if len(video_hashes) is not 0:
+            post_data['video_hashes'] = video_hashes
 
     return post_data
 
-def get_image_hashes(images):
-    image_hashes = []
-    for image in images:
-        print("image found", image)
-        image_hash = add_to_IPFS(image)
-        if image_hash is not None:
-            image_hashes.append(image_hash)
+def get_file_hashes(files):
+    file_hashes = []
+    for file in files:
+        print("file found", file)
+        file_hash = add_to_IPFS(file)
+        if file_hash is not None:
+            file_hashes.append(file_hash)
 
-    return image_hashes
+    return file_hashes
 
 def main():
     defaults = {}
