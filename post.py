@@ -57,7 +57,7 @@ def write_post(post_data, root_post_hash, out_filename):
             outfile.write('<source src=\"https://ipfs.io/ipfs/' + hash + '\">')
             outfile.write('<br>')
             outfile.write('</audio>')
-        outfile.write('<p>')
+        outfile.write('</p>')
 
     video_hashes = post_data.get('video_hashes', None)
     if video_hashes is not None:
@@ -67,14 +67,14 @@ def write_post(post_data, root_post_hash, out_filename):
             outfile.write('<source src=\"https://ipfs.io/ipfs/' + hash + '\">')
             outfile.write('<br>')
             outfile.write('</video>')
+        outfile.write('</p>')
+
+    if root_post_hash is not None:
         outfile.write('<p>')
+        outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
 
-    outfile.write('<p>')
-    outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
-    outfile.write('<p>')
-
-    outfile.write('<br>')
-    outfile.write('<a href=\"https://ipfs.io/ipfs/' + root_post_hash + '\">[Previous post]</a>')
+        outfile.write('<a href=\"https://ipfs.io/ipfs/' + root_post_hash + '\">[Previous post]</a>')
+        outfile.write('</p>')
 
     outfile.write('</body>')
     outfile.write('</html>')
@@ -111,10 +111,15 @@ def publish(post_hash):
 def get_root_post_hash(root_ipns_hash):
     # get the last post by resolving the ipns 
     p = Popen(['ipfs', 'name', 'resolve', root_ipns_hash], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    prev_post_hash = None
+
     for line in p.stdout.readlines():
         prev_post_hash = ntpath.basename(line.strip())
 
-    return prev_post_hash.decode()
+    if prev_post_hash is not None:
+        return prev_post_hash.decode()
+
+    return
 
 def load_defaults(defaults):
     print("defaults in: ", defaults)
@@ -197,7 +202,6 @@ def main():
     #store_defaults(defaults, args)
     
 
-    root_post_hash = get_root_post_hash(defaults['root_hash'])
 
     if args.outfile is not None:
         out_filename = args.outfile
@@ -207,6 +211,8 @@ def main():
     post_data = extract_post_data(args)
 
     print(post_data)
+
+    root_post_hash = get_root_post_hash(defaults['root_hash'])
 
     write_post(post_data, root_post_hash, out_filename)
 
