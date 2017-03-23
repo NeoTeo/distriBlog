@@ -1,6 +1,9 @@
 import sys
 import argparse
 import ntpath
+import time
+import io
+import uuid
 
 # For calling shell scripts
 from subprocess import call, Popen, PIPE
@@ -27,10 +30,21 @@ def parse_arguments():
 
 def write_post(post_data, root_post_hash, out_filename):
     # open a file to write to
-    outfile = open(out_filename, 'x')
+    try:
+        #outfile = open(out_filename, 'x')
+        outfile = io.StringIO()
+    except IOError as e:
+        print("Could not create file", out_filename)
+        print("Error:", e.strerror)
+        sys.exit()
 
     outfile.write('<html>')
     outfile.write('<body>')
+
+    post_time = post_data.get('post_time', None)
+    post_date = post_data.get('post_date', None)
+
+    outfile.write('<h2>' + post_date + " " + post_time + '</h2>')
 
     post_title = post_data.get('post_title', None)
     if post_title is not None:
@@ -39,7 +53,6 @@ def write_post(post_data, root_post_hash, out_filename):
     post_text = post_data.get('post_text', None)
     if post_text is not None:
         outfile.write(post_text)
-
 
     image_hashes = post_data.get('image_hashes', None)
     if image_hashes is not None:
@@ -79,6 +92,16 @@ def write_post(post_data, root_post_hash, out_filename):
     outfile.write('</body>')
     outfile.write('</html>')
 
+
+    try:
+        outfile2 = open(out_filename, 'x')
+        outfile2.write(outfile.getvalue())
+        outfile2.close()
+
+    except IOError as e:
+        print("Could not create file", out_filename)
+        print("Error:", e.strerror)
+        
     outfile.close()
 
 def add_to_IPFS(filename):
@@ -142,6 +165,20 @@ def extract_post_data(args):
 
     post_data = {}
 
+    # If the date for a post is not given, use today's date.
+    post_date = args.date
+    if post_date is None:
+        post_date = time.strftime("%d/%m/%Y")
+
+    post_data['post_date'] = post_date
+
+    # If the time for a post is not given, use now.
+    post_time = args.time
+    if post_time is None:
+        post_time = time.strftime("%X")
+
+    post_data['post_time'] = post_time
+
     post_title = args.title
     if post_title is not None:
         post_data['post_title'] = post_title
@@ -201,12 +238,10 @@ def main():
     # if requested via args, store the args as defaults
     #store_defaults(defaults, args)
     
-
-
     if args.outfile is not None:
         out_filename = args.outfile
     else:
-        out_filename = 'post.html'
+        out_filename = 'post' + time.strftime("%d%m%Y") + time.strftime("%H%M%S") + '.html'
 
     post_data = extract_post_data(args)
 
