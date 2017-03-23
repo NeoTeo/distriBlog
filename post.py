@@ -3,7 +3,6 @@ import argparse
 import ntpath
 import time
 import io
-import uuid
 
 # For calling shell scripts
 from subprocess import call, Popen, PIPE
