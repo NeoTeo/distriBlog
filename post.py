@@ -236,11 +236,13 @@ def main():
 
     # if requested via args, store the args as defaults
     #store_defaults(defaults, args)
-    
+    tmp_filename = None 
+
     if args.outfile is not None:
         out_filename = args.outfile
     else:
         out_filename = 'post' + time.strftime("%d%m%Y") + time.strftime("%H%M%S") + '.html'
+        tmp_filename = out_filename 
 
     post_data = extract_post_data(args)
 
@@ -255,4 +257,7 @@ def main():
 
     publish(post_hash)
 
+    if tmp_filename is not None:
+        # delete temp file
+        os.remove(tmp_filename)
 main()
