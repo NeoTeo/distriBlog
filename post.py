@@ -119,11 +119,16 @@ def add_to_IPFS(filename):
 
     return post_hash
 
-def publish(post_hash):
+def publish(post_hash, ipns_name):
     # Publish the post as the IPNS 
     if post_hash:
-        p = Popen(['ipfs', 'name', 'publish', post_hash], stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        print("Published ",post_hash," to ipns ")
+
+        if ipns_name:
+            p = Popen(['ipfs', 'name', 'publish', '--key=' + ipns_name, post_hash], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        else:
+            p = Popen(['ipfs', 'name', 'publish', post_hash], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+        print("Published ",post_hash," to ipns.")
         lines = p.stdout.readlines()
              
         for line in p.stdout.readlines():
@@ -131,6 +136,8 @@ def publish(post_hash):
 
 
 def get_root_post_hash(root_ipns_hash):
+    print("root ipns hash " + root_ipns_hash)
+
     # get the last post by resolving the ipns 
     p = Popen(['ipfs', 'name', 'resolve', root_ipns_hash], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     prev_post_hash = None
@@ -150,13 +157,19 @@ def load_defaults(defaults):
         return
 
     with open(config_file) as file:
-        # use regex to split into a key and a value
-        regex = re.compile('(\w+)\s*=\s*(\w+)')
+
+        # use regex to split into a key and a value avoiding lines starting with #
+        regex = re.compile('(^[^\#]\w+)\s*=\s*(\w+)')
+
         for line in file.readlines():
             matches = regex.search(line)
+            if matches is None:
+                continue
+
             key = matches.group(1)
             value = matches.group(2)
-            print("adding key", key, " and value ", value)
+
+            print("adding key ", key, "and value ", value)
             if key is not None and value is not None:
                 defaults[key] = value
 
@@ -226,6 +239,30 @@ def get_file_hashes(files):
 
     return file_hashes
 
+def ipns_name_to_hash(name):
+    
+    p = Popen(['ipfs', 'key', 'list', '-l'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+    regex = re.compile('^(\w+)\s(\w+)')
+
+    for line in p.stdout.readlines():
+
+        clean_line = line.strip().decode()
+        matches = regex.search(clean_line)
+
+        if matches is None:
+            print("no match. Continue.")
+            continue
+
+        hash = matches.group(1)
+        root_name = matches.group(2)
+
+        if root_name == name:
+            return hash
+
+    # Failed to find hash of name
+    return 
+
 def main():
     defaults = {}
 
@@ -244,18 +281,32 @@ def main():
         out_filename = 'post' + time.strftime("%d%m%Y") + time.strftime("%H%M%S") + '.html'
         tmp_filename = out_filename 
 
+    # Ensure we have a root hash, first from args then from config file.
+    if args.root_hash is None:
+        if 'root_ipns_name' in defaults:
+            root_post_name = defaults['root_ipns_name']
+            print('Root name in config file: ' + root_post_name)
+            root_post_hash = ipns_name_to_hash(root_post_name)
+        elif 'root_ipns_hash' in defaults:
+            root_post_hash = get_root_post_hash(defaults['root_ipns_hash'])
+        else:
+            print('Failed to find a root hash. Exiting!')
+            exit()
+    else:
+        print('Root hash in args: ' + args.root_hash)
+        root_post_hash = args.root_hash
+        
     post_data = extract_post_data(args)
 
     print(post_data)
 
-    root_post_hash = get_root_post_hash(defaults['root_hash'])
 
     write_post(post_data, root_post_hash, out_filename)
 
 #def write_post(post_text, out_filename, root_post_hash, post_title):
     post_hash = add_to_IPFS(out_filename)
 
-    publish(post_hash)
+    publish(post_hash, root_post_name)
 
     if tmp_filename is not None:
         # delete temp file
