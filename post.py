@@ -284,14 +284,16 @@ def main():
     # Ensure we have a root hash, first from args then from config file.
     if args.root_hash is None:
         if 'root_ipns_name' in defaults:
-            root_post_name = defaults['root_ipns_name']
-            print('Root name in config file: ' + root_post_name)
-            root_post_hash = ipns_name_to_hash(root_post_name)
+            blog_root_name = defaults['root_ipns_name']
+            print('Root name in config file: ' + blog_root_name)
+            blog_root_hash = ipns_name_to_hash(blog_root_name)
         elif 'root_ipns_hash' in defaults:
-            root_post_hash = get_root_post_hash(defaults['root_ipns_hash'])
+            blog_root_hash = get_root_post_hash(defaults['root_ipns_hash'])
         else:
             print('Failed to find a root hash. Exiting!')
             exit()
+
+        root_post_hash = get_root_post_hash(blog_root_hash)
     else:
         print('Root hash in args: ' + args.root_hash)
         root_post_hash = args.root_hash
@@ -306,7 +308,7 @@ def main():
 #def write_post(post_text, out_filename, root_post_hash, post_title):
     post_hash = add_to_IPFS(out_filename)
 
-    publish(post_hash, root_post_name)
+    publish(post_hash, blog_root_name)
 
     if tmp_filename is not None:
         # delete temp file
