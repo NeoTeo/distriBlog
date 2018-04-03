@@ -38,28 +38,40 @@ def write_post(post_data, root_post_hash, out_filename):
         sys.exit()
 
     outfile.write('<html>')
+    outfile.write('<head>')
+    outfile.write('<link href=\"https://ipfs.io/ipfs/QmUFPgwUtfV2FouEApg2C8s8E6jrge3aBuGGR64FTrpURR\" rel=\"stylesheet\" type=\"text/css\">')
+    outfile.write('</head>')
     outfile.write('<body>')
+
+    outfile.write('<article>')
+
+    outfile.write('<section>')
+
+    post_title = post_data.get('post_title', None)
+    if post_title is not None:
+        outfile.write('<h1>' + post_title + '</h1>')
 
     post_time = post_data.get('post_time', None)
     post_date = post_data.get('post_date', None)
 
     outfile.write('<h2>' + post_date + " " + post_time + '</h2>')
 
-    post_title = post_data.get('post_title', None)
-    if post_title is not None:
-        outfile.write('<h1>' + post_title + '</h1>')
-
     post_text = post_data.get('post_text', None)
     if post_text is not None:
+        outfile.write('<p>')
         outfile.write(post_text)
+        outfile.write('</p>')
+
+    outfile.write('</section>')
+
 
     image_hashes = post_data.get('image_hashes', None)
     if image_hashes is not None:
-        outfile.write('<p>')
         for hash in image_hashes:
-            outfile.write('<img src=\"https://ipfs.io/ipfs/' + hash + '\">')
+            outfile.write('<figure>')
+            outfile.write('<img src=\"https://ipfs.io/ipfs/' + hash + '\" width=\"100%\">')
             outfile.write('<br>')
-        outfile.write('</p>')
+            outfile.write('</figure>')
 
     audio_hashes = post_data.get('audio_hashes', None)
     if audio_hashes is not None:
@@ -82,12 +94,15 @@ def write_post(post_data, root_post_hash, out_filename):
         outfile.write('</p>')
 
     if root_post_hash is not None:
+        outfile.write('<section>')
         outfile.write('<p>')
         outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
 
         outfile.write('<a href=\"https://ipfs.io/ipfs/' + root_post_hash + '\">[Previous post]</a>')
         outfile.write('</p>')
+        outfile.write('</section>')
 
+    outfile.write('</article>')
     outfile.write('</body>')
     outfile.write('</html>')
 
