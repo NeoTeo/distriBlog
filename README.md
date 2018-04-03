@@ -21,4 +21,4 @@ The config file format is, one per line:
 ## Todo
 * <del>If no outfile is given, output to a temp file that is deleted locally after being added to IPFS.</del>✅
 * <del>Implement default date and time to be the time of posting.</del>✅
-* Design post layout.
+* <del>Design post layout.</del>
