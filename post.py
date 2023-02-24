@@ -48,7 +48,7 @@ def write_post(post_data, root_post_hash, out_filename):
     outfile.write('<section>')
 
     post_title = post_data.get('post_title', None)
-    if post_title is not None:
+    if post_title != None:
         outfile.write('<h1>' + post_title + '</h1>')
 
     post_time = post_data.get('post_time', None)
@@ -57,7 +57,7 @@ def write_post(post_data, root_post_hash, out_filename):
     outfile.write('<h2>' + post_date + " " + post_time + '</h2>')
 
     post_text = post_data.get('post_text', None)
-    if post_text is not None:
+    if post_text != None:
         outfile.write('<p>')
         outfile.write(post_text)
         outfile.write('</p>')
@@ -66,7 +66,7 @@ def write_post(post_data, root_post_hash, out_filename):
 
 
     image_hashes = post_data.get('image_hashes', None)
-    if image_hashes is not None:
+    if image_hashes != None:
         for hash in image_hashes:
             outfile.write('<figure>')
             outfile.write('<img src=\"https://ipfs.io/ipfs/' + hash + '\" width=\"100%\">')
@@ -74,7 +74,7 @@ def write_post(post_data, root_post_hash, out_filename):
             outfile.write('</figure>')
 
     audio_hashes = post_data.get('audio_hashes', None)
-    if audio_hashes is not None:
+    if audio_hashes != None:
         outfile.write('<p>')
         for hash in audio_hashes:
             outfile.write('<audio controls>')
@@ -84,7 +84,7 @@ def write_post(post_data, root_post_hash, out_filename):
         outfile.write('</p>')
 
     video_hashes = post_data.get('video_hashes', None)
-    if video_hashes is not None:
+    if video_hashes != None:
         outfile.write('<p>')
         for hash in video_hashes:
             outfile.write('<video width=\"800\" height=\"600\" controls>')
@@ -93,7 +93,7 @@ def write_post(post_data, root_post_hash, out_filename):
             outfile.write('</video>')
         outfile.write('</p>')
 
-    if root_post_hash is not None:
+    if root_post_hash != None:
         outfile.write('<section>')
         outfile.write('<p>')
         outfile.write('<data-prev-post-hash=\"' + root_post_hash + '\"/>')
@@ -121,7 +121,7 @@ def write_post(post_data, root_post_hash, out_filename):
 def add_to_IPFS(filename):
 
     # Early out if file doesn't exist
-    if os.path.exists(filename) is not True:
+    if os.path.exists(filename) != True:
         return
 
     # Add the file to the IPFS network
@@ -160,7 +160,7 @@ def get_root_post_hash(root_ipns_hash):
     for line in p.stdout.readlines():
         prev_post_hash = ntpath.basename(line.strip())
 
-    if prev_post_hash is not None:
+    if prev_post_hash != None:
         return prev_post_hash.decode()
 
     return
@@ -168,7 +168,7 @@ def get_root_post_hash(root_ipns_hash):
 def load_defaults(defaults):
     print("defaults in: ", defaults)
     config_file = 'defaults.cfg'
-    if os.path.exists(config_file) is not True:
+    if os.path.exists(config_file) != True:
         return
 
     with open(config_file) as file:
@@ -185,21 +185,21 @@ def load_defaults(defaults):
             value = matches.group(2)
 
             print("adding key ", key, "and value ", value)
-            if key is not None and value is not None:
+            if key != None and value != None:
                 defaults[key] = value
 
 def extract_post_data(args):
 
     post_data = {}
 
-    # If the date for a post is not given, use today's date.
+    # If the date for a post != given, use today's date.
     post_date = args.date
     if post_date is None:
         post_date = time.strftime("%d/%m/%Y")
 
     post_data['post_date'] = post_date
 
-    # If the time for a post is not given, use now.
+    # If the time for a post != given, use now.
     post_time = args.time
     if post_time is None:
         post_time = time.strftime("%X")
@@ -207,13 +207,13 @@ def extract_post_data(args):
     post_data['post_time'] = post_time
 
     post_title = args.title
-    if post_title is not None:
+    if post_title != None:
         post_data['post_title'] = post_title
 
     text_to_read = args.text_file
 
     # Post text is either from a file or stdin
-    if text_to_read is not None:
+    if text_to_read != None:
         post_text = text_to_read.read()
     else:
         sys.exit('Error! Post text is missing.')
@@ -222,24 +222,24 @@ def extract_post_data(args):
 
 
     # get image files as hashes
-    if args.image_files is not None:
+    if args.image_files != None:
         image_hashes = get_file_hashes(args.image_files)
 
-        if len(image_hashes) is not 0:
+        if len(image_hashes) != 0:
             post_data['image_hashes'] = image_hashes
 
     # get sound files as hashes
-    if args.audio_files is not None:
+    if args.audio_files != None:
         audio_hashes = get_file_hashes(args.audio_files)
 
-        if len(audio_hashes) is not 0:
+        if len(audio_hashes) != 0:
             post_data['audio_hashes'] = audio_hashes
 
     # get video files as hashes
-    if args.video_files is not None:
+    if args.video_files != None:
         video_hashes = get_file_hashes(args.video_files)
 
-        if len(video_hashes) is not 0:
+        if len(video_hashes) != 0:
             post_data['video_hashes'] = video_hashes
 
     return post_data
@@ -249,7 +249,7 @@ def get_file_hashes(files):
     for file in files:
         print("file found", file)
         file_hash = add_to_IPFS(file)
-        if file_hash is not None:
+        if file_hash != None:
             file_hashes.append(file_hash)
 
     return file_hashes
@@ -290,7 +290,7 @@ def main():
     #store_defaults(defaults, args)
     tmp_filename = None 
 
-    if args.outfile is not None:
+    if args.outfile != None:
         out_filename = args.outfile
     else:
         out_filename = 'post' + time.strftime("%d%m%Y") + time.strftime("%H%M%S") + '.html'
@@ -325,7 +325,7 @@ def main():
 
     publish(post_hash, blog_root_name)
 
-    if tmp_filename is not None:
+    if tmp_filename != None:
         # delete temp file
         os.remove(tmp_filename)
 main()
