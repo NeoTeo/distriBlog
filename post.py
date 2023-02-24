@@ -39,7 +39,7 @@ def write_post(post_data, root_post_hash, out_filename):
 
     outfile.write('<html>')
     outfile.write('<head>')
-    outfile.write('<link href=\"https://ipfs.io/ipfs/QmUFPgwUtfV2FouEApg2C8s8E6jrge3aBuGGR64FTrpURR\" rel=\"stylesheet\" type=\"text/css\">')
+    outfile.write('<link href=\"https://ipfs.io/ipfs/bafybeicxzu57lndsr4tlaolsjyqysawze43pardrq6u5bsbpxajdijsh7q\" rel=\"stylesheet\" type=\"text/css\">')
     outfile.write('</head>')
     outfile.write('<body>')
 
@@ -258,7 +258,7 @@ def ipns_name_to_hash(name):
     
     p = Popen(['ipfs', 'key', 'list', '-l'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
-    regex = re.compile('^(\w+)\s(\w+)')
+    regex = re.compile('^(\w+)\s+(\w+)')
 
     for line in p.stdout.readlines():
 
