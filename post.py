@@ -37,9 +37,13 @@ def write_post(post_data, root_post_hash, out_filename):
         print("Error:", e.strerror)
         sys.exit()
 
+    outfile.write('<!DOCTYPE html>')
     outfile.write('<html>')
     outfile.write('<head>')
-    outfile.write('<link href=\"https://ipfs.io/ipfs/bafybeicxzu57lndsr4tlaolsjyqysawze43pardrq6u5bsbpxajdijsh7q\" rel=\"stylesheet\" type=\"text/css\">')
+    outfile.write('<link href="https://fonts.googleapis.com/css2?family=Acme" rel="stylesheet">')
+    #outfile.write('<link href=\"https://ipfs.io/ipfs/bafybeicxzu57lndsr4tlaolsjyqysawze43pardrq6u5bsbpxajdijsh7q?filename=sartori.css\" rel=\"stylesheet\" type=\"text/css\">')
+
+    outfile.write('<link href=\"https://ipfs.io/ipfs/QmXJNbZzJaAH7QUJ8seLqqvCQuRHYcTP6yr1y3qbbTw1My?filename=sartori.css\" rel=\"stylesheet\" type=\"text/css\">')
     outfile.write('</head>')
     outfile.write('<body>')
 
@@ -49,7 +53,8 @@ def write_post(post_data, root_post_hash, out_filename):
 
     post_title = post_data.get('post_title', None)
     if post_title != None:
-        outfile.write('<h1>' + post_title + '</h1>')
+        #outfile.write('<h1>' + post_title + '</h1>')
+        outfile.write('<div class="title">' + post_title + '</div>')
 
     post_time = post_data.get('post_time', None)
     post_date = post_data.get('post_date', None)
